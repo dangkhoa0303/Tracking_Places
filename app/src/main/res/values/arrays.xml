@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <array name="pref_radius_label">
+        <item>@string/radius_500_m_label</item>
+        <item>@string/radius_700_m_label</item>
+        <item>@string/radius_1000_m_label</item>
+    </array>
+
+    <array name="pref_radius_values">
+        <item>@string/radius_500_m</item>
+        <item>@string/radius_700_m</item>
+        <item>@string/radius_1000_m</item>
+    </array>
+
+    <array name="pref_location_type_label">
+        <item>@string/place_bus_station_label</item>
+        <item>@string/place_bank_label</item>
+        <item>@string/place_atm_label</item>
+        <item>@string/place_cafe_label</item>
+        <item>@string/place_restaurant_label</item>
+        <item>@string/place_movie_theater_label</item>
+    </array>
+
+    <array name="pref_location_type_values">
+        <item>@string/place_bus_station</item>
+        <item>@string/place_bank</item>
+        <item>@string/place_atm</item>
+        <item>@string/place_cafe</item>
+        <item>@string/place_restaurant</item>
+        <item>@string/place_movie_theater</item>
+    </array>
+
+</resources>

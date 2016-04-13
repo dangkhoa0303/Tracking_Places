@@ -1,0 +1,21 @@
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res/com.example.android.sunshine"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ListPreference
+        android:title="@string/pref_radius_label"
+        android:key="@string/pref_radius_key"
+        android:defaultValue="@string/radius_500_m"
+        android:entries="@array/pref_radius_label"
+        android:entryValues="@array/pref_radius_values" />
+
+    <ListPreference
+        android:title="@string/pref_location_type_label"
+        android:key="@string/pref_location_type_key"
+        android:defaultValue="@string/place_bus_station"
+        android:entries="@array/pref_location_type_label"
+        android:entryValues="@array/pref_location_type_values"/>
+
+</PreferenceScreen>

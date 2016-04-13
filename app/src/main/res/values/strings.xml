@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">Tracking Places</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="satellite">Satellite</string>
+    <string name="hybrid">Hybrid</string>
+    <string name="terrain">Terrain</string>
+    
+    <string name="pref_radius_label">Radius</string>
+    <string name="pref_radius_key">radius</string>
+    <string name="pref_location_type_label">Location type</string>
+    <string name="pref_location_type_key">location_type</string>
+    
+    <string name="radius_500_m">500</string> <!-- this one is the default value -->
+    <string name="radius_700_m">700</string>
+    <string name="radius_1000_m">1000</string>
+
+    <string name="radius_500_m_label">500 m</string>
+    <string name="radius_700_m_label">700 m</string>
+    <string name="radius_1000_m_label">1000 m</string>
+    
+    <string name="place_bus_station">bus_station</string> <!-- this one is the default value -->
+    <string name="place_bank">bank</string>
+    <string name="place_atm">atm</string>
+    <string name="place_cafe">cafe</string>
+    <string name="place_restaurant">restaurant</string>
+    <string name="place_movie_theater">movie_theater</string>
+
+    <string name="place_bus_station_label">Bus station</string>
+    <string name="place_bank_label">Bank</string>
+    <string name="place_atm_label">ATM</string>
+    <string name="place_cafe_label">Cafe</string>
+    <string name="place_restaurant_label">Restaurant</string>
+    <string name="place_movie_theater_label">Movie Theater</string>
+
+</resources>
