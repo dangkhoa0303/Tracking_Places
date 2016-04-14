@@ -31,7 +31,7 @@ public class Util {
     public static CameraPosition setCameraPosition(LatLng location) {
         CameraPosition target = CameraPosition.builder().target(location)
                 .tilt(40)
-                .zoom(16)
+                .zoom(15)
                 .build();
         return target;
     }
@@ -43,9 +43,9 @@ public class Util {
         map.addCircle(new CircleOptions()
                 .center(target)
                 .radius(Double.parseDouble(r))
-                .strokeColor(Color.BLUE)
+                .strokeColor(Color.MAGENTA)
                 .strokeWidth(5)
-                .fillColor(Color.argb(40, 0, 230, 0))
+                .fillColor(Color.argb(70, 255, 255, 153))
         );
     }
 
@@ -53,15 +53,16 @@ public class Util {
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(target)
                 .title("My current location")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_maps_my_location));
         mGoogleMap.addMarker(markerOptions);
     }
 
-    public static void AddBusMarker(ArrayList<BusInfo> list, GoogleMap map) {
+    public static void AddBusMarker(Context context, ArrayList<BusInfo> list, GoogleMap map) {
         for (int i = 0; i < list.size(); i++) {
             MarkerOptions marker = new MarkerOptions();
             marker.position(list.get(i).getLocation())
-                    .title(list.get(i).getName());
+                    .title(list.get(i).getName())
+                    .icon(BitmapDescriptorFactory.fromResource(getMarkerIcon(context)));
             map.addMarker(marker);
 
         }
@@ -131,6 +132,36 @@ public class Util {
                 break;
         }
         return label;
+    }
+
+    public static int getMarkerIcon(Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        String value = sp.getString(context.getString(R.string.pref_location_type_key), context.getString(R.string.place_bus_station));
+        int icon;
+        switch(value) {
+            case "bus_station":
+                icon = R.drawable.ic_maps_directions_bus;
+                break;
+            case "bank":
+                icon = R.drawable.ic_editor_attach_money;
+                break;
+            case "atm":
+                icon = R.drawable.ic_maps_local_atm;
+                break;
+            case "cafe":
+                icon = R.drawable.ic_maps_local_bar;
+                break;
+            case "restaurant":
+                icon = R.drawable.ic_maps_local_restaurant;
+                break;
+            case "movie_theater":
+                icon = R.drawable.ic_maps_local_movies;
+                break;
+            default:
+                icon = R.drawable.ic_maps_directions_bus;
+                break;
+        }
+        return icon;
     }
 
 }

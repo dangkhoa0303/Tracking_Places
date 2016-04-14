@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -138,12 +139,20 @@ public class BusAsyncTask extends AsyncTask<String, Void, ArrayList<BusInfo>> {
                 }
             }
         }
-        return extractJson(json);
+        if (json != null) {
+            return extractJson(json);
+        } else {
+            return null;
+        }
+
     }
 
     @Override
     protected void onPostExecute(ArrayList<BusInfo> busInfos) {
         super.onPostExecute(busInfos);
         MainActivity.indicator.setVisibility(View.INVISIBLE);
+        if (busInfos == null) {
+            Toast.makeText(context, "Cannot get data", Toast.LENGTH_SHORT).show();
+        }
     }
 }

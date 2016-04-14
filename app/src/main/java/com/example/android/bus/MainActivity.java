@@ -30,14 +30,14 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMarkerClickListener,
-        GoogleMap.OnMapClickListener {
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMarkerClickListener {
 
     private String LOG_TAG = "Bus App Test";
 
@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // generate map fragment
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
     }
 
     @Override
@@ -203,6 +204,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         onMapReady = true;
         mGoogleMap = googleMap;
         mGoogleMap.setOnMarkerClickListener(this);
+
+        mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if (locationBtn.getVisibility()==View.VISIBLE && labelTextView.getVisibility()==View.VISIBLE) {
+                    locationBtn.setVisibility(View.INVISIBLE);
+                    labelTextView.setVisibility(View.INVISIBLE);
+                } else {
+                    locationBtn.setVisibility(View.VISIBLE);
+                    labelTextView.setVisibility(View.VISIBLE);
+                }
+            }
+        });
     }
 
     @Override
@@ -226,7 +240,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 e.printStackTrace();
                 Toast.makeText(getApplicationContext(), "Can not get data!!!", Toast.LENGTH_SHORT).show();
             }
-            Util.AddBusMarker(list, mGoogleMap);
+
+            if (list != null) {
+                Util.AddBusMarker(this, list, mGoogleMap);
+            }
+
         } else {
             Toast.makeText(getApplicationContext(), "No internet connection!", Toast.LENGTH_SHORT).show();
         }
@@ -239,10 +257,5 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Util.AddCurrentLocationMarker(mCurrentLocation, mGoogleMap);
             Util.drawCircle(mCurrentLocation, mGoogleMap, radius);
         }
-    }
-
-    @Override
-    public void onMapClick(LatLng latLng) {
-
     }
 }
