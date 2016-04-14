@@ -1,10 +1,11 @@
-package com.example.android.bus;
+package com.example.android.bus.Activities;
 
 import android.content.Intent;
-import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import com.example.android.bus.R;
 
 public class Settings extends AppCompatActivity {
 

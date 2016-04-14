@@ -14,7 +14,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 
@@ -30,14 +29,14 @@ public class Util {
 
     public static CameraPosition setCameraPosition(LatLng location) {
         CameraPosition target = CameraPosition.builder().target(location)
-                .tilt(40)
-                .zoom(15)
+                .tilt(30)
+                .zoom(16)
                 .build();
         return target;
     }
 
     public static void drawCircle(LatLng target, GoogleMap map, String r) {
-        if (r==null || r=="") {
+        if (r == null || r == "") {
             r = "500";
         }
         map.addCircle(new CircleOptions()
@@ -57,14 +56,13 @@ public class Util {
         mGoogleMap.addMarker(markerOptions);
     }
 
-    public static void AddBusMarker(Context context, ArrayList<BusInfo> list, GoogleMap map) {
+    public static void AddBusMarker(Context context, ArrayList<PlaceInfo> list, GoogleMap map) {
         for (int i = 0; i < list.size(); i++) {
             MarkerOptions marker = new MarkerOptions();
             marker.position(list.get(i).getLocation())
                     .title(list.get(i).getName())
                     .icon(BitmapDescriptorFactory.fromResource(getMarkerIcon(context)));
             map.addMarker(marker);
-
         }
     }
 
@@ -73,9 +71,9 @@ public class Util {
     }
 
     public static boolean checkInternetConnection(Context context) {
-        ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-        return networkInfo!=null && networkInfo.isConnected();
+        return networkInfo != null && networkInfo.isConnected();
     }
 
     public static void resetRadius(Context context, String key, String value) {
@@ -108,7 +106,7 @@ public class Util {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         String value = sp.getString(context.getString(R.string.pref_location_type_key), context.getString(R.string.place_bus_station));
         String label;
-        switch(value) {
+        switch (value) {
             case "bus_station":
                 label = "Bus station";
                 break;
@@ -138,7 +136,7 @@ public class Util {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         String value = sp.getString(context.getString(R.string.pref_location_type_key), context.getString(R.string.place_bus_station));
         int icon;
-        switch(value) {
+        switch (value) {
             case "bus_station":
                 icon = R.drawable.ic_maps_directions_bus;
                 break;

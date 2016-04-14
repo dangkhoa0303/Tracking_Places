@@ -1,4 +1,4 @@
-package com.example.android.bus;
+package com.example.android.bus.Activities;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -7,6 +7,9 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+
+import com.example.android.bus.R;
+import com.example.android.bus.Util;
 
 /**
  * Created by Dell on 4/13/2016.

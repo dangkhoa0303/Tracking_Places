@@ -1,4 +1,4 @@
-package com.example.android.bus;
+package com.example.android.bus.Service;
 
 import android.content.Context;
 import android.net.Uri;
@@ -7,6 +7,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.android.bus.PlaceInfo;
+import com.example.android.bus.Activities.MainActivity;
+import com.example.android.bus.R;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
@@ -24,7 +27,7 @@ import java.util.ArrayList;
 /**
  * Created by Dell on 4/11/2016.
  */
-public class BusAsyncTask extends AsyncTask<String, Void, ArrayList<BusInfo>> {
+public class BusAsyncTask extends AsyncTask<String, Void, ArrayList<PlaceInfo>> {
     private String radius, location_type;
     private Context context;
 
@@ -34,7 +37,7 @@ public class BusAsyncTask extends AsyncTask<String, Void, ArrayList<BusInfo>> {
         this.location_type = location_type;
     }
 
-    private ArrayList<BusInfo> extractJson(String json) {
+    private ArrayList<PlaceInfo> extractJson(String json) {
 
         String RESULTS = "results";
         String GEOMETRY = "geometry";
@@ -46,7 +49,7 @@ public class BusAsyncTask extends AsyncTask<String, Void, ArrayList<BusInfo>> {
         String LATITUDE = "lat";
         String LONGITUDE = "lng";
 
-        ArrayList<BusInfo> listBus = new ArrayList<>();
+        ArrayList<PlaceInfo> listBus = new ArrayList<>();
 
         try {
             JSONObject result = new JSONObject(json);
@@ -56,18 +59,18 @@ public class BusAsyncTask extends AsyncTask<String, Void, ArrayList<BusInfo>> {
                 for (int i = 0; i < list.length(); i++) {
                     JSONObject bus_station = list.getJSONObject(i);
 
-                    BusInfo busInfo = new BusInfo();
-                    busInfo.setName(bus_station.getString(NAME));
-                    busInfo.setPlace_id(bus_station.getString(PLACE_ID));
-                    busInfo.setVicinity(bus_station.getString(VICINITY));
-                    busInfo.setIconURL(bus_station.getString(ICON));
+                    PlaceInfo placeInfo = new PlaceInfo();
+                    placeInfo.setName(bus_station.getString(NAME));
+                    placeInfo.setPlace_id(bus_station.getString(PLACE_ID));
+                    placeInfo.setVicinity(bus_station.getString(VICINITY));
+                    placeInfo.setIconURL(bus_station.getString(ICON));
 
                     JSONObject geometry = bus_station.getJSONObject(GEOMETRY);
                     JSONObject location = geometry.getJSONObject(LOCATION);
                     LatLng latLng = new LatLng(Double.parseDouble(location.getString(LATITUDE)), Double.parseDouble(location.getString(LONGITUDE)));
-                    busInfo.setLocation(latLng);
+                    placeInfo.setLocation(latLng);
 
-                    listBus.add(busInfo);
+                    listBus.add(placeInfo);
                 }
             } else {
                 // do nothing here
@@ -81,7 +84,7 @@ public class BusAsyncTask extends AsyncTask<String, Void, ArrayList<BusInfo>> {
     }
 
     @Override
-    protected ArrayList<BusInfo> doInBackground(String... params) {
+    protected ArrayList<PlaceInfo> doInBackground(String... params) {
 
         HttpURLConnection httpURLConnection = null;
         BufferedReader bufferedReader = null;
@@ -148,10 +151,10 @@ public class BusAsyncTask extends AsyncTask<String, Void, ArrayList<BusInfo>> {
     }
 
     @Override
-    protected void onPostExecute(ArrayList<BusInfo> busInfos) {
-        super.onPostExecute(busInfos);
+    protected void onPostExecute(ArrayList<PlaceInfo> placeInfos) {
+        super.onPostExecute(placeInfos);
         MainActivity.indicator.setVisibility(View.INVISIBLE);
-        if (busInfos == null) {
+        if (placeInfos == null) {
             Toast.makeText(context, "Cannot get data", Toast.LENGTH_SHORT).show();
         }
     }

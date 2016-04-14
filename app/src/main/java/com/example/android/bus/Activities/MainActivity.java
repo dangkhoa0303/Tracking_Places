@@ -1,8 +1,11 @@
-package com.example.android.bus;
+package com.example.android.bus.Activities;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -20,6 +23,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.bus.PlaceInfo;
+import com.example.android.bus.R;
+import com.example.android.bus.Service.PlacesService;
+import com.example.android.bus.Util;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -30,11 +37,8 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMarkerClickListener {
@@ -58,10 +62,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static String radius;
     private static String locationType;
 
+    private PlacesServiceReceiver receiver;
+
+//    public static ArrayList<PlaceInfo> listInfo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        IntentFilter intentFilter = new IntentFilter(PlacesServiceReceiver.PLACE_LIST_RESPONSE);
+        intentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        receiver = new PlacesServiceReceiver(this);
+        registerReceiver(receiver, intentFilter);
 
         // generate mGoogleApiClient
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -82,11 +95,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mLocationRequest = LocationRequest.create();
-                mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
                 if (onLocationReady) {
-                    mCurrentLocation = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
                     Util.flyTo(Util.setCameraPosition(mCurrentLocation), mGoogleMap);
                 } else {
                     Toast.makeText(getApplicationContext(), "No location", Toast.LENGTH_SHORT).show();
@@ -97,7 +106,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // generate map fragment
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
     }
 
     @Override
@@ -147,6 +155,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        this.unregisterReceiver(receiver);
+        super.onDestroy();
     }
 
     @Override
@@ -156,7 +171,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mLocationRequest = LocationRequest.create();
             mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage("No permission for accessing location !!!")
@@ -185,11 +199,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //LatLng destination = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
         mCurrentLocation = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+
         radius = Util.getRadius(this);
         locationType = Util.getLocationType(this);
 
         labelTextView.setText(Util.getLocationTypeLabel(this));
-
         SetCurrentLocation();
         RequestList();
     }
@@ -208,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                if (locationBtn.getVisibility()==View.VISIBLE && labelTextView.getVisibility()==View.VISIBLE) {
+                if (locationBtn.getVisibility() == View.VISIBLE && labelTextView.getVisibility() == View.VISIBLE) {
                     locationBtn.setVisibility(View.INVISIBLE);
                     labelTextView.setVisibility(View.INVISIBLE);
                 } else {
@@ -227,24 +241,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void RequestList() {
         if (Util.checkInternetConnection(getApplicationContext())) {
-            BusAsyncTask task = new BusAsyncTask(this, radius, locationType);
-            ArrayList<BusInfo> list = new ArrayList<BusInfo>();
-
-            try {
-                indicator.setVisibility(View.VISIBLE);
-                list = task.execute(Util.LocationString(mCurrentLocation)).get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                Toast.makeText(getApplicationContext(), "Interrupted!!!", Toast.LENGTH_SHORT).show();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-                Toast.makeText(getApplicationContext(), "Can not get data!!!", Toast.LENGTH_SHORT).show();
-            }
-
-            if (list != null) {
-                Util.AddBusMarker(this, list, mGoogleMap);
-            }
-
+            indicator.setVisibility(View.VISIBLE);
+            Intent intent = new Intent(this, PlacesService.class);
+            intent.putExtra(PlacesService.CURRENT_LOCATION, Util.LocationString(mCurrentLocation));
+            intent.putExtra(PlacesService.CURRENT_RADIUS, radius);
+            intent.putExtra(PlacesService.LOCATION_TYPE, locationType);
+            startService(intent);
         } else {
             Toast.makeText(getApplicationContext(), "No internet connection!", Toast.LENGTH_SHORT).show();
         }
@@ -256,6 +258,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mGoogleMap.clear();
             Util.AddCurrentLocationMarker(mCurrentLocation, mGoogleMap);
             Util.drawCircle(mCurrentLocation, mGoogleMap, radius);
+        }
+    }
+
+    public class PlacesServiceReceiver extends BroadcastReceiver {
+
+        public static final String PLACE_LIST_RESPONSE = "com.example.android.bus.intent.action.PLACE_LIST_RESPONSE";
+        private Context context;
+
+        public PlacesServiceReceiver(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ArrayList<PlaceInfo> list = intent.getParcelableArrayListExtra(PlacesService.LIST_RESPONSE);
+            Util.AddBusMarker(context, list, mGoogleMap);
+            MainActivity.indicator.setVisibility(View.INVISIBLE);
         }
     }
 }
