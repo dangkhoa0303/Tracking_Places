@@ -27,11 +27,11 @@ import java.util.ArrayList;
 /**
  * Created by Dell on 4/11/2016.
  */
-public class BusAsyncTask extends AsyncTask<String, Void, ArrayList<PlaceInfo>> {
+public class PlacesAsyncTask extends AsyncTask<String, Void, ArrayList<PlaceInfo>> {
     private String radius, location_type;
     private Context context;
 
-    public BusAsyncTask(Context context, String radius, String location_type) {
+    public PlacesAsyncTask(Context context, String radius, String location_type) {
         this.context = context;
         this.radius = radius;
         this.location_type = location_type;
@@ -153,7 +153,7 @@ public class BusAsyncTask extends AsyncTask<String, Void, ArrayList<PlaceInfo>> 
     @Override
     protected void onPostExecute(ArrayList<PlaceInfo> placeInfos) {
         super.onPostExecute(placeInfos);
-        MainActivity.indicator.setVisibility(View.INVISIBLE);
+        //MainActivity.indicator.setVisibility(View.INVISIBLE);
         if (placeInfos == null) {
             Toast.makeText(context, "Cannot get data", Toast.LENGTH_SHORT).show();
         }

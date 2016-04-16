@@ -6,12 +6,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -57,20 +60,53 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private FloatingActionButton locationBtn;
     private TextView labelTextView;
-    public static ProgressBar indicator;
+    private static ProgressBar indicator;
 
     private static String radius;
     private static String locationType;
 
     private PlacesServiceReceiver receiver;
 
-//    public static ArrayList<PlaceInfo> listInfo;
+    private ArrayList<PlaceInfo> list;
+    private String SAVE_LIST_KEY = "save_list";
+    private String SAVE_RADIUS_KEY = "save_radius";
+    private String SAVE_LOCATION_TYPE_KEY = "save_location_type";
+    private String saved_radius;
+    private String saved_locationType;
+
+    // save list, radius and locationType whenever onPause() is called
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(SAVE_RADIUS_KEY, radius);
+        outState.putString(SAVE_LOCATION_TYPE_KEY, locationType);
+        outState.putParcelableArrayList(SAVE_LIST_KEY, list);
+
+        // when settingsActivity comes back to this activity, it jumps straight ahead to onResume instead of onCreate
+        // therefore, the values of saved_radius and saved_locationType stay unchanged and are not used correctly in updating UI
+        // we need store like this in order to change the values of these two
+        saved_radius = radius;
+        saved_locationType = locationType;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        // load the sotred values into list, saved_radius and saved_locationType
+        if (savedInstanceState != null) {
+            list = savedInstanceState.getParcelableArrayList(SAVE_LIST_KEY);
+            saved_radius = savedInstanceState.getString(SAVE_RADIUS_KEY);
+            saved_locationType = savedInstanceState.getString(SAVE_LOCATION_TYPE_KEY);
+        } else {
+            list = new ArrayList<>();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        // register for receiving intent from IntentService by using IntentFilter and BroadcastReceiver
         IntentFilter intentFilter = new IntentFilter(PlacesServiceReceiver.PLACE_LIST_RESPONSE);
         intentFilter.addCategory(Intent.CATEGORY_DEFAULT);
         receiver = new PlacesServiceReceiver(this);
@@ -95,7 +131,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mLocationRequest = LocationRequest.create();
+                mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
                 if (onLocationReady) {
+                    mCurrentLocation = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+                    Log.i("OnButtonPressed", Util.LocationString(mCurrentLocation));
                     Util.flyTo(Util.setCameraPosition(mCurrentLocation), mGoogleMap);
                 } else {
                     Toast.makeText(getApplicationContext(), "No location", Toast.LENGTH_SHORT).show();
@@ -153,13 +193,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-    }
-
-    @Override
     protected void onDestroy() {
+        // when this activity is destroyed, unregister for receiving intent
         this.unregisterReceiver(receiver);
         super.onDestroy();
     }
@@ -189,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.i(LOG_TAG, "Connection suspended!");
+        Toast.makeText(getApplicationContext(), "Something happened in connection !", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -199,18 +234,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //LatLng destination = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
         mCurrentLocation = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
-
         radius = Util.getRadius(this);
         locationType = Util.getLocationType(this);
 
         labelTextView.setText(Util.getLocationTypeLabel(this));
         SetCurrentLocation();
-        RequestList();
+
+        // check if list is not null, and radius and locationType are unchanged, then just simple addPlaceMarkers without calling IntentService
+        if (list != null && (saved_radius != null && saved_radius.equals(radius)) && (saved_locationType != null && saved_locationType.equals(locationType))) {
+            Util.AddPlaceMarker(getApplicationContext(), list, mGoogleMap);
+        } else {
+            // otherwise, call IntentService to load new Places and add new Markers
+            RequestList();
+        }
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.i(LOG_TAG, "Connection failed!");
+        Toast.makeText(getApplicationContext(), "Failed to connect to the Internet !", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -261,7 +302,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    /*
+    Declare an inner class of Activity that will receive intent from IntentService
+    This class extends from BroadcastReceiver
+     */
     public class PlacesServiceReceiver extends BroadcastReceiver {
+
+        /* This String is used as a filter for MainActivity to receive the result from IntentService
+        It can be anything we like. However, in conventional way, it is better to use the package name as String filter
+         */
 
         public static final String PLACE_LIST_RESPONSE = "com.example.android.bus.intent.action.PLACE_LIST_RESPONSE";
         private Context context;
@@ -272,8 +321,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            ArrayList<PlaceInfo> list = intent.getParcelableArrayListExtra(PlacesService.LIST_RESPONSE);
-            Util.AddBusMarker(context, list, mGoogleMap);
+            list = intent.getParcelableArrayListExtra(PlacesService.LIST_RESPONSE);
+            // update main UI
+            Util.AddPlaceMarker(context, list, mGoogleMap);
+            Toast.makeText(context, "" + list.size() + " " + labelTextView.getText().toString() + "(s)", Toast.LENGTH_SHORT).show();
             MainActivity.indicator.setVisibility(View.INVISIBLE);
         }
     }

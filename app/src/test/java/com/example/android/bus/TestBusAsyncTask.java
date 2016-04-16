@@ -2,7 +2,7 @@ package com.example.android.bus;
 
 import android.test.AndroidTestCase;
 
-import com.example.android.bus.Service.BusAsyncTask;
+import com.example.android.bus.Service.PlacesAsyncTask;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -12,13 +12,13 @@ import java.util.concurrent.ExecutionException;
  */
 public class TestBusAsyncTask extends AndroidTestCase {
 
-    BusAsyncTask task;
+    PlacesAsyncTask task;
     ArrayList<PlaceInfo> list;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        task = new BusAsyncTask();
+        task = new PlacesAsyncTask();
         list = new ArrayList<>();
     }
 

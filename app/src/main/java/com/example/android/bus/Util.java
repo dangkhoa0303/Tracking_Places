@@ -30,7 +30,7 @@ public class Util {
     public static CameraPosition setCameraPosition(LatLng location) {
         CameraPosition target = CameraPosition.builder().target(location)
                 .tilt(30)
-                .zoom(16)
+                .zoom((float) 16)
                 .build();
         return target;
     }
@@ -52,11 +52,11 @@ public class Util {
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(target)
                 .title("My current location")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_maps_my_location));
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_location_marker));
         mGoogleMap.addMarker(markerOptions);
     }
 
-    public static void AddBusMarker(Context context, ArrayList<PlaceInfo> list, GoogleMap map) {
+    public static void AddPlaceMarker(Context context, ArrayList<PlaceInfo> list, GoogleMap map) {
         for (int i = 0; i < list.size(); i++) {
             MarkerOptions marker = new MarkerOptions();
             marker.position(list.get(i).getLocation())
